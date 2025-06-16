@@ -1,76 +1,82 @@
-/* eslint-disable require-yield, eqeqeq */
+/* Arrow1.js – projectile-style arrow for a Leopard/Scratch-to-JS project
+   – Fires toward the mouse once per click
+   – Simple gravity and reset when it leaves the stage
+   – Written for Leopard @ ^1 (https://github.com/JoelEinbinder/leopard) */
 
 import {
   Sprite,
   Trigger,
-  Watcher,
   Costume,
-  Color,
   Sound,
-} from "https://unpkg.com/leopard@^1/dist/index.esm.js";
+  Color
+} from "leopard";
 
 export default class Arrow1 extends Sprite {
   constructor(...args) {
     super(...args);
 
+    /* ----- assets ------------------------------------------------------ */
     this.costumes = [
-      new Costume("arrow1-a", "./Arrow1/costumes/arrow1-a.svg", {
-        x: 28.14483903477199,
-        y: 23.163332787810276,
-      }),
+      // Adjust name/path if your costume differs
+      new Costume("arrow", "./Arrow1/costumes/arrow.svg", { x: 0, y: 0 })
     ];
 
-    this.sounds = [new Sound("pop", "./Arrow1/sounds/pop.wav")];
+    this.sounds = [
+      // Example: new Sound("whoosh", "./Arrow1/sounds/whoosh.wav")
+    ];
 
+    /* ----- event triggers --------------------------------------------- */
     this.triggers = [
-      new Trigger(Trigger.GREEN_FLAG, this.whenGreenFlagClicked),
-      new Trigger(Trigger.GREEN_FLAG, this.whenGreenFlagClicked2),
-      new Trigger(Trigger.CLONE_START, this.startAsClone),
-      new Trigger(Trigger.CLONE_START, this.startAsClone2),
+      new Trigger(Trigger.GREEN_FLAG, this.whenGreenFlagClicked)
     ];
   }
 
-  *whenGreenFlagClicked() {
-    this.visible = false;
-    while (true) {
-      this.goto(this.sprites["AppleCatcher"].x, this.sprites["AppleCatcher"].y);
-      this.direction = this.radToScratch(
-        Math.atan2(this.mouse.y - this.y, this.mouse.x - this.x)
-      );
-      yield;
-    }
-  }
-
-  *whenGreenFlagClicked2() {
-    while (true) {
-      if (this.mouse.down) {
-        this.createClone();
-      }
-      yield;
-    }
-  }
-
-  *startAsClone() {
+  /* -------------------------------------------------------------------- */
+  whenGreenFlagClicked() {
+    /* ---------- initial setup ---------------------------------------- */
+    this.goto(-220, 0);      // start at left edge
+    this.direction = 90;     // point right
     this.visible = true;
-    while (
-      !(
-        this.touching("edge") ||
-        this.touching(this.sprites["Apple"].andClones())
-      )
-    ) {
-      this.move(10);
-      yield;
-    }
-    yield* this.wait(1);
-    this.deleteThisClone();
-  }
 
-  *startAsClone2() {
+    /* ---------- state vars ------------------------------------------ */
+    let vx = 0;              // horizontal velocity
+    let vy = 0;              // vertical   velocity
+    let shooting = false;    // “in-flight” flag
+
+    /* ---------- main loop ------------------------------------------- */
     while (true) {
-      if (this.touching(this.sprites["Apple"].andClones())) {
-        this.say("you win");
+      /* -- fire only on fresh mouse-down ---------------------------- */
+      if (this.mouse.down && !shooting) {
+        shooting = true;
+
+        /* angle & speed toward mouse position */
+        const dx = this.mouse.x - this.x;
+        const dy = this.mouse.y - this.y;
+        const angleRad = Math.atan2(dy, dx);
+        const speed   = 15;            // tweak for faster/slower shot
+
+        vx = speed * Math.cos(angleRad);
+        vy = speed * Math.sin(angleRad);
+
+        this.direction = angleRad * 180 / Math.PI; // point arrow
       }
-      yield;
+
+      /* -- update motion each frame --------------------------------- */
+      if (shooting) {
+        this.x += vx;
+        this.y += vy;
+        vy     -= 0.6;                 // gravity
+
+        /* reset once the arrow leaves the stage */
+        if (this.x > 260 || this.x < -260 || this.y > 200 || this.y < -200) {
+          shooting = false;
+          vx = vy = 0;
+          this.goto(-220, 0);
+          this.direction = 90;
+        }
+      }
+
+      this.wait(0.03);                 // ~33 fps
     }
   }
 }
