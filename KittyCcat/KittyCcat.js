@@ -3,11 +3,10 @@
 import {
   Sprite,
   Trigger,
-  Watcher,
   Costume,
-  Color,
-  Sound,
-} from "https://unpkg.com/leopard@^1/dist/index.esm.js";
+  Sound
+} from "https://unpkg.com/leopard@1.30.1/dist/index.esm.js";
+
 
 export default class KittyCcat extends Sprite {
   constructor(...args) {
