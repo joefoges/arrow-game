@@ -30,16 +30,47 @@ export default class Arrow1 extends Sprite {
     ];
   }
 
-  *whenGreenFlagClicked() {
-    this.visible = false;
-    while (true) {
-      this.goto(this.sprites["AppleCatcher"].x, this.sprites["AppleCatcher"].y);
-      this.direction = this.radToScratch(
-        Math.atan2(this.mouse.y - this.y, this.mouse.x - this.x)
-      );
-      yield;
+ whenGreenFlagClicked() {
+  this.goto(-50, 0);
+  this.setDirection(90);
+  this.show();
+
+  let vx = 0;
+  let vy = 0;
+  let shooting = false;
+
+  while (true) {
+    if (this.mouse.down && !shooting) {
+      shooting = true;
+
+      const dx = 240 - this.x;
+      const dy = this.mouse.y - this.y;
+      const angle = Math.atan2(dy, dx);
+      const speed = 15;
+
+      vx = speed * Math.cos(angle);
+      vy = speed * Math.sin(angle);
+
+      this.setDirection(angle * 180 / Math.PI);
     }
+
+    if (shooting) {
+      this.x += vx;
+      this.y += vy;
+      vy -= 0.6; // gravity
+
+      // Reset when off screen
+      if (this.x > 260 || this.x < -260 || this.y < -200 || this.y > 200) {
+        shooting = false;
+        vx = vy = 0;
+        this.goto(-50, 0);
+        this.setDirection(90);
+      }
+    }
+
+    this.wait(0.03);
   }
+}
 
   *whenGreenFlagClicked2() {
     while (true) {
