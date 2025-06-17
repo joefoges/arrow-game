@@ -19,10 +19,11 @@ export default class Arrow1 extends Sprite {
 
     /* ---- assets --------------------------------------------------- */
     this.costumes = [
-      new Costume("arrow1-a", "./arrow1-a.svg", { x: 8, y: 0 })
-    ];
-    this.sounds = [];
-
+      new Costume(
+  "arrow1-a",
+  new URL("./costumes/arrow1-a.svg", import.meta.url).href,
+  { x: 8, y: 0 })
+ ];
     /* ---- debug watchers ------------------------------------------- */
     this.watchers = [
       new Watcher({
